@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import Modal from "./EditForum.vue";
 
 // Define reactive variables and ensure proper types
 const comments = ref<{ id: number; email: string; body: string }[]>([]);
@@ -7,9 +8,16 @@ const searchQuery = ref<string>("");
 const sortColumn = ref<string>("");
 const sortOrder = ref<"asc" | "desc">("asc");
 const currentPage = ref<number>(1);
-const rowsPerPage = ref<number | string>(10); // 'all' or numeric value
+const rowsPerPage = ref<number | string>(10);
 const loading = ref<boolean>(true);
 
+// Modal state
+const showModal = ref<boolean>(false);
+const editingComment = ref<{ id: number; email: string; body: string } | null>(
+  null
+);
+
+// Fetch comments from the API
 const fetchComments = async () => {
   loading.value = true;
   try {
@@ -24,6 +32,7 @@ const fetchComments = async () => {
   }
 };
 
+// Computed property to filter comments based on search query
 const filteredData = computed(() => {
   return comments.value.filter((comment) =>
     comment.body.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -31,18 +40,23 @@ const filteredData = computed(() => {
 });
 
 const sortedData = computed(() => {
+  // Define a type for the valid keys of a comment
+  type CommentKeys = keyof { id: number; email: string; body: string };
+
   if (sortColumn.value) {
     return [...filteredData.value].sort((a, b) => {
+      const key = sortColumn.value as CommentKeys; // Assert sortColumn as CommentKeys
       if (sortOrder.value === "asc") {
-        return a[sortColumn.value] > b[sortColumn.value] ? 1 : -1;
+        return a[key] > b[key] ? 1 : -1;
       } else {
-        return a[sortColumn.value] < b[sortColumn.value] ? 1 : -1;
+        return a[key] < b[key] ? 1 : -1;
       }
     });
   }
   return filteredData.value;
 });
 
+// Computed property to paginate the sorted comments
 const paginatedData = computed(() => {
   if (rowsPerPage.value === "all") {
     return sortedData.value; // Return all data if 'all' is selected
@@ -58,7 +72,7 @@ const paginatedData = computed(() => {
 
 const totalPages = computed(() => {
   if (rowsPerPage.value === "all") {
-    return 1; // Only one page if 'all' is selected
+    return 1;
   }
   const numRows =
     typeof rowsPerPage.value === "string"
@@ -69,7 +83,7 @@ const totalPages = computed(() => {
 
 const hasNextPage = computed(() => {
   if (rowsPerPage.value === "all") {
-    return false; // No next page if 'all' is selected
+    return false;
   }
   return currentPage.value < totalPages.value;
 });
@@ -95,25 +109,38 @@ const sortBy = (column: string) => {
   }
 };
 
-const editComment = (id: number) => {
-  alert(`Edit comment with ID ${id}`);
+const openEditModal = (comment: {
+  id: number;
+  email: string;
+  body: string;
+}) => {
+  editingComment.value = { ...comment };
+  showModal.value = true;
+};
+
+const saveEdit = (id: number, email: string, body: string) => {
+  const comment = comments.value.find((comment) => comment.id === id);
+  if (comment) {
+    comment.email = email;
+    comment.body = body;
+  }
+  showModal.value = false;
 };
 
 const removeComment = (id: number) => {
   comments.value = comments.value.filter((comment) => comment.id !== id);
 };
 
-// Watch rowsPerPage and reset currentPage if it changes
 watch(rowsPerPage, () => {
-  currentPage.value = 1; // Reset to first page whenever rowsPerPage changes
+  currentPage.value = 1;
 });
 
-// Fetch comments on component mount
 onMounted(fetchComments);
 </script>
 
 <template>
   <div>
+    <!-- Search and Pagination Controls -->
     <div class="search-bar">
       <input
         class="search-input"
@@ -130,6 +157,8 @@ onMounted(fetchComments);
         </select>
       </div>
     </div>
+
+    <!-- Comments Table -->
     <div class="container">
       <table>
         <thead>
@@ -147,13 +176,15 @@ onMounted(fetchComments);
             <td>{{ comment.email }}</td>
             <td>{{ comment.body }}</td>
             <td>
-              <button @click="editComment(comment.id)">Edit</button>
+              <button @click="openEditModal(comment)">Edit</button>
             </td>
             <td><button @click="removeComment(comment.id)">Remove</button></td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination Controls -->
     <div class="bottom-btn">
       <button
         class="bottom-btn-1"
@@ -170,6 +201,16 @@ onMounted(fetchComments);
         Next
       </button>
     </div>
+
+    <!-- Edit Modal -->
+    <Modal
+      v-if="showModal && editingComment"
+      :id="editingComment!.id"
+      :email="editingComment!.email"
+      :body="editingComment!.body"
+      @save="saveEdit"
+      @close="showModal = false"
+    />
   </div>
 </template>
 
@@ -180,7 +221,8 @@ table {
 }
 th,
 td {
-  padding: 20px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 th {
   cursor: pointer;
