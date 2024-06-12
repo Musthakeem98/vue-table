@@ -110,5 +110,6 @@ const close = () => {
   border-radius: 5px;
   border-color: #31473a;
   font-size: medium;
+  font-weight: 500;
 }
 </style>

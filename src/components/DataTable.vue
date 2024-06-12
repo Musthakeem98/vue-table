@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import Modal from "./EditForum.vue";
+import prevIcon from "../assets/next-btn.svg";
+import { useToast } from "vue-toast-notification"; // Importing vue-toast-notification
 
 // Define reactive variables and ensure proper types
 const comments = ref<{ id: number; email: string; body: string }[]>([]);
@@ -16,6 +18,9 @@ const showModal = ref<boolean>(false);
 const editingComment = ref<{ id: number; email: string; body: string } | null>(
   null
 );
+
+// Initialize vue-toast-notification's toast
+const toast = useToast();
 
 // Fetch comments from the API
 const fetchComments = async () => {
@@ -39,13 +44,12 @@ const filteredData = computed(() => {
   );
 });
 
+// Computed property to sort the filtered comments
 const sortedData = computed(() => {
-  // Define a type for the valid keys of a comment
   type CommentKeys = keyof { id: number; email: string; body: string };
-
   if (sortColumn.value) {
     return [...filteredData.value].sort((a, b) => {
-      const key = sortColumn.value as CommentKeys; // Assert sortColumn as CommentKeys
+      const key = sortColumn.value as CommentKeys;
       if (sortOrder.value === "asc") {
         return a[key] > b[key] ? 1 : -1;
       } else {
@@ -59,7 +63,7 @@ const sortedData = computed(() => {
 // Computed property to paginate the sorted comments
 const paginatedData = computed(() => {
   if (rowsPerPage.value === "all") {
-    return sortedData.value; // Return all data if 'all' is selected
+    return sortedData.value;
   }
   const numRows =
     typeof rowsPerPage.value === "string"
@@ -70,6 +74,7 @@ const paginatedData = computed(() => {
   return sortedData.value.slice(start, end);
 });
 
+// Computed property to determine the total number of pages
 const totalPages = computed(() => {
   if (rowsPerPage.value === "all") {
     return 1;
@@ -81,25 +86,29 @@ const totalPages = computed(() => {
   return Math.ceil(sortedData.value.length / numRows);
 });
 
+// Computed property to check if there's a next page
 const hasNextPage = computed(() => {
   if (rowsPerPage.value === "all") {
-    return false;
+    return false; // No next page if 'all' is selected
   }
   return currentPage.value < totalPages.value;
 });
 
+// Function to go to the next page
 const nextPage = () => {
   if (hasNextPage.value) {
     currentPage.value++;
   }
 };
 
+// Function to go to the previous page
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
 };
 
+// Function to sort the comments by a specific column
 const sortBy = (column: string) => {
   if (sortColumn.value === column) {
     sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
@@ -109,6 +118,7 @@ const sortBy = (column: string) => {
   }
 };
 
+// Function to open the edit modal and set the comment to be edited
 const openEditModal = (comment: {
   id: number;
   email: string;
@@ -123,18 +133,24 @@ const saveEdit = (id: number, email: string, body: string) => {
   if (comment) {
     comment.email = email;
     comment.body = body;
+    toast.success("Comment updated successfully!");
   }
   showModal.value = false;
 };
 
+// Function to remove a comment
 const removeComment = (id: number) => {
   comments.value = comments.value.filter((comment) => comment.id !== id);
+  // Show a success notification
+  toast.success("Comment removed successfully!");
 };
 
+// Watch rowsPerPage and reset currentPage if it changes
 watch(rowsPerPage, () => {
-  currentPage.value = 1;
+  currentPage.value = 1; // Reset to first page whenever rowsPerPage changes
 });
 
+// Fetch comments on component mount
 onMounted(fetchComments);
 </script>
 
@@ -146,7 +162,7 @@ onMounted(fetchComments);
         class="search-input"
         type="text"
         v-model="searchQuery"
-        placeholder="Search comments..."
+        placeholder="Search body..."
       />
       <div class="select-container">
         <select v-model="rowsPerPage">
@@ -191,6 +207,7 @@ onMounted(fetchComments);
         @click="prevPage"
         :disabled="currentPage === 1 || rowsPerPage === 'all'"
       >
+        <img class="pre-icon" :src="prevIcon" alt="Previous" />
         Prev
       </button>
       <button
@@ -199,6 +216,7 @@ onMounted(fetchComments);
         :disabled="!hasNextPage || rowsPerPage === 'all'"
       >
         Next
+        <img class="next-icon" :src="prevIcon" alt="Next" />
       </button>
     </div>
 
@@ -215,6 +233,7 @@ onMounted(fetchComments);
 </template>
 
 <style scoped>
+/* Style for the table */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -226,5 +245,12 @@ td {
 }
 th {
   cursor: pointer;
+}
+
+.select-container select {
+  padding: 5px;
+}
+.container {
+  margin-bottom: 20px;
 }
 </style>

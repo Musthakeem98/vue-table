@@ -123,8 +123,30 @@ td {
 }
 
 .bottom-btn {
-  padding-top: 100px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding-top: 50px;
 }
 .bottom-btn-1 {
+  padding: 10px;
+}
+
+.pre-icon {
+  width: 15px;
+  padding-right: 10px;
+  align-items: center;
+}
+
+.next-icon {
+  width: 15px;
+  align-items: center;
+  transform: rotate(180deg);
+  padding-right: 10px;
+}
+
+option {
+  background: #edf4f2;
+  color: #31473a;
   padding: 10px;
 }
