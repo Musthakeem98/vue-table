@@ -91,9 +91,11 @@ button:focus-visible {
   color: #242424;
   padding: 15px;
   border-radius: 10px;
+  width: 25%;
 }
 .select-container {
   display: flex;
+  padding-right: 15px;
 }
 select {
   font-size: medium;
