@@ -108,7 +108,6 @@ const prevPage = () => {
   }
 };
 
-// Function to sort the comments by a specific column
 const sortBy = (column: string) => {
   if (sortColumn.value === column) {
     sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
@@ -118,7 +117,6 @@ const sortBy = (column: string) => {
   }
 };
 
-// Function to open the edit modal and set the comment to be edited
 const openEditModal = (comment: {
   id: number;
   email: string;
@@ -162,7 +160,7 @@ onMounted(fetchComments);
         class="search-input"
         type="text"
         v-model="searchQuery"
-        placeholder="Search body..."
+        placeholder="Search something from body..."
       />
       <div class="select-container">
         <select v-model="rowsPerPage">
@@ -248,7 +246,7 @@ th {
 }
 
 .select-container select {
-  padding: 5px;
+  padding: 15px;
 }
 .container {
   margin-bottom: 20px;
