@@ -133,7 +133,7 @@ const saveEdit = (id: number, email: string, body: string) => {
   if (comment) {
     comment.email = email;
     comment.body = body;
-    toast.success("Comment updated successfully!");
+    toast.success("Content updated successfully!");
   }
   showModal.value = false;
 };
@@ -142,7 +142,7 @@ const saveEdit = (id: number, email: string, body: string) => {
 const removeComment = (id: number) => {
   comments.value = comments.value.filter((comment) => comment.id !== id);
   // Show a success notification
-  toast.success("Comment removed successfully!");
+  toast.success("Content removed successfully!");
 };
 
 // Watch rowsPerPage and reset currentPage if it changes
